@@ -1,0 +1,13 @@
+#! /usr/bin/env node
+
+const figlet = require('figlet');
+const pkg    = require('../package');
+const config = require('../config');
+
+console.log();
+console.log(figlet.textSync('NotificationD', { font: 'Ogre' }));
+console.log();
+console.log(`version: ${pkg.version} revision: ${pkg.revision}`);
+console.log();
+
+config.printExplainTable();

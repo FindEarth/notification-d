@@ -1,0 +1,19 @@
+#! /usr/bin/env node
+
+const figlet = require('figlet');
+const pkg    = require('../package');
+
+console.log();
+console.log(figlet.textSync('NotificationD', { font: 'Ogre' }));
+console.log();
+console.log(`version: ${pkg.version} revision: ${pkg.revision}`);
+console.log();
+
+
+const notificationD = require('../');
+
+
+notificationD.start((err, result) => {
+  if (err) { throw err; }
+  notificationD.logger.info('Listening for HTTP requests at %s', result.url);
+});
