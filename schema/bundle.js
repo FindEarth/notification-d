@@ -20,7 +20,7 @@ const bundleSchema = new Schema({
   body        : { type : String },
   users       : [{ type: ObjectId }],
   createdBy   : { type : String },
-  status      : { type : String, enum : ['success', 'pending', 'failed', 'enqueued'] },
+  status      : { type : String, enum : ['success', 'pending', 'failed', 'enqueued'], default: 'pending' },
   sentAt      : { type : Date },
   scheduledAt : { type : Date },
   deliveredAt : { type : Date },
