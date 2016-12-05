@@ -10,19 +10,21 @@ const validators   = {
 };
 
 const geo = {
-  loc   : { type: [Number], index: '2dsphere', required: true, validate: validators.location },
+  loc   : { type: [Number], index: '2dsphere', required: false, validate: validators.location },
   raduis: { type: Number }
 };
 
 const bundleSchema = new Schema({
-  title    : { type : String, required: true },
-  message  : { type : String },
-  body     : { type : String },
-  users    : [{ type: ObjectId }],
-  createdBy: { type : String },
-  status   : { type : Boolean },
-  sentAt   : { type : Date },
-  type     : { type : String, enum    : ['push', 'sms', 'email'] },
+  name        : { type : String, required: true },
+  title       : { type : String },
+  body        : { type : String },
+  users       : [{ type: ObjectId }],
+  createdBy   : { type : String },
+  status      : { type : String, enum : ['success', 'pending', 'failed', 'enqueued'] },
+  sentAt      : { type : Date },
+  scheduledAt : { type : Date },
+  deliveredAt : { type : Date },
+  type        : { type : String, enum : ['push', 'sms', 'email'] },
   geo
 });
 
