@@ -1,5 +1,5 @@
 const Schema   = require('mongoose').Schema;
-
+const ObjectId = Schema.Types.ObjectId;
 
 const validators   = {
   location: {
@@ -23,6 +23,7 @@ const NotificationSetSchema = new Schema({
   sentAt      : { type : Date },
   scheduledAt : { type : Date },
   deliveredAt : { type : Date },
+  organization: { type : ObjectId },
   type        : { type : String, enum : ['push', 'sms', 'email'] },
   geo
 });
