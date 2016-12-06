@@ -1,5 +1,4 @@
 const Schema   = require('mongoose').Schema;
-const ObjectId = Schema.Types.ObjectId;
 
 
 const validators   = {
@@ -18,7 +17,7 @@ const bundleSchema = new Schema({
   name        : { type : String, required: true },
   title       : { type : String },
   body        : { type : String },
-  users       : [{ type: ObjectId }],
+  users       : [String],
   createdBy   : { type : String },
   status      : { type : String, enum : ['success', 'pending', 'failed', 'enqueued'], default: 'pending' },
   sentAt      : { type : Date },
