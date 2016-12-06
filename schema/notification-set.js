@@ -1,5 +1,4 @@
 const Schema   = require('mongoose').Schema;
-const ObjectId = Schema.Types.ObjectId;
 
 
 const validators   = {
@@ -10,19 +9,21 @@ const validators   = {
 };
 
 const geo = {
-  loc   : { type: [Number], index: '2dsphere', required: true, validate: validators.location },
+  loc   : { type: [Number], index: '2dsphere', required: false, validate: validators.location },
   raduis: { type: Number }
 };
 
 const NotificationSetSchema = new Schema({
-  title       : { type : String, required: true },
-  message     : { type : String },
-  users       : [{ type: ObjectId }],
-  organization: { type : ObjectId },
+  name        : { type : String, required: true },
+  title       : { type : String },
+  body        : { type : String },
+  users       : [String],
   createdBy   : { type : String },
-  status      : { type : Boolean },
+  status      : { type : String, enum : ['success', 'pending', 'failed', 'enqueued'], default: 'pending' },
   sentAt      : { type : Date },
-  type        : { type : String, enum    : ['push', 'sms', 'email'] },
+  scheduledAt : { type : Date },
+  deliveredAt : { type : Date },
+  type        : { type : String, enum : ['push', 'sms', 'email'] },
   geo
 });
 
