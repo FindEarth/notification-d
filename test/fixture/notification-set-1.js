@@ -5,18 +5,16 @@ const geo = {
   raduis: 100
 };
 
-const Bundle1 = {
+const notificationSet1 = {
   _id         : new ObjectId('12a3d077c143c921072e342a'),
-  title       : 'Notification Foo',
-  message     : 'Notification Foo message',
-  users       : [new ObjectId('12a3d077c143c921072e343c'), new ObjectId('12a3d077c143c921072e345c')],
-  organization: new ObjectId('12a3d077c143c921012e340a'),
-  // createdBy   : { type : String },
-  // status      : { type : Boolean },
+  name        : 'Notification Foo',
+  body        : 'Notification Foo message',
   sentAt      : new Date(),
   type        : 'push',
+  organization: new ObjectId('12a3d077c143c921012e340a'),
+  users       : ['12a3d077c143c921072e343c', '12a3d077c143c921072e345c'],
   geo
 };
 
 
-module.exports = Bundle1;
+module.exports = notificationSet1;

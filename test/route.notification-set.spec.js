@@ -33,14 +33,9 @@ describe('NotificationSet Routes', () => {
 
         connection.db.collection('notificationsets').find({}).toArray((err, notificationSets) => {
           if (err) { return cb(err); }
-
           assert.equal(notificationSets.length, 1);
-
           const notificationSet        = notificationSets[0];
-          notificationSet._id          = notificationSet._id.toString();
-          notificationSet.users        = notificationSet.users.map(id => id.toString());
           notificationSet.organization = notificationSet.organization.toString();
-
           assertContains(notificationSet, newNotificationSet1Fixture);
           cb(null);
         });
@@ -70,15 +65,13 @@ describe('NotificationSet Routes', () => {
     });
   });
 
-  describe('Get NotificationSet Route - GET /notification/:notificationId/notification-set/:id', () => {
+  describe('Get NotificationSet Route - GET /organization/:organizationId/notification-set/:id', () => {
     beforeEach((done) => { connection.db.collection('notificationsets').insertOne(notificationSet1Fixture, done); });
 
     it('retrieves a notificationSet document in the database', (cb) => {
       request.get(`${baseRoute}/${notificationSet1Fixture._id.toString()}`, { json: true }, (err, clientRes) => {
         if (err) { return cb(err); }
-
         clientRes.body.sentAt = new Date(clientRes.body.sentAt);
-
         assertContains(clientRes.body, newNotificationSet1Fixture);
         cb(null);
       });
