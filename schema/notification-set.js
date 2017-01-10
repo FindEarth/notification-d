@@ -13,16 +13,17 @@ const geo = {
   raduis: { type: Number }
 };
 
+const statusEnum = ['success', 'pending', 'failed'];
+
 const NotificationSetSchema = new Schema({
   name        : { type : String, required: true },
   title       : { type : String },
   body        : { type : String },
   users       : [String],
   createdBy   : { type : String },
-  status      : { type : String, enum : ['success', 'pending', 'failed', 'enqueued'], default: 'pending' },
+  status      : { type : String, enum: statusEnum, default: 'pending' },
   sentAt      : { type : Date },
   scheduledAt : { type : Date },
-  deliveredAt : { type : Date },
   organization: { type : ObjectId },
   type        : { type : String, enum : ['push', 'sms', 'email'] },
   geo
