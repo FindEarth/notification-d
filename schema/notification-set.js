@@ -14,18 +14,19 @@ const geo = {
 };
 
 const statusEnum = ['success', 'pending', 'failed'];
+const typeEnum   = ['push', 'sms', 'email'];
 
 const NotificationSetSchema = new Schema({
   name        : { type : String, required: true },
   title       : { type : String },
   body        : { type : String },
-  users       : [String],
+  users       : { type : [String] },
   createdBy   : { type : String },
   status      : { type : String, enum: statusEnum, default: 'pending' },
   sentAt      : { type : Date },
   scheduledAt : { type : Date },
   organization: { type : ObjectId },
-  type        : { type : String, enum : ['push', 'sms', 'email'] },
+  type        : { type : String, enum: typeEnum, default: 'email' },
   geo
 });
 
