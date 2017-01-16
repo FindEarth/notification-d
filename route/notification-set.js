@@ -4,14 +4,14 @@ const router = new Router();
 
 
 function sendNotificationSet(req, res, next) {
-  req.logger.info(`Finding notification set ${req.body}`);
+  req.logger.info('Finding notification set', req.query);
   req.model('NotificationSet').countAndFind({
     status: {
       $in: ['pending', 'failed']
     },
     scheduledAt: {
-      $gte: new Date(),
-      $lt:  new Date()
+      $gte: req.query.fromDate,
+      $lt:  req.query.toDate
     }
   })
     .lean()
@@ -26,7 +26,7 @@ function sendNotificationSet(req, res, next) {
           cb(null, result);
         });
       }, (err, results) => {
-        // results is now an array of stats for each file
+        // @TODO Send to client the succesfully sent notifications
 
         req.logger.verbose('Sending notification set to client');
         res.sendQueried(notificationSets, notificationSetCount);
