@@ -15,14 +15,6 @@ const config = milieu('notificationd', {
   api: {
     url: 'http://localhost:8000'
   },
-  sqs: {
-    region: 'us-west-2',
-    accessKeyId: 'AKIAJFA24LYFET5XRD3Q',
-    secretAccessKey: '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',
-    params: {
-      QueueUrl: 'https://sqs.us-west-2.amazonaws.com/983755687467/probando'
-    }
-  },
   nodemailer: {
     transporter: {
       smtps    : 'mail%40gmail.com',

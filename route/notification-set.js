@@ -1,100 +1,45 @@
+const async  = require('async');
 const Router = require('express').Router;
-const aws = require('aws-sdk');
-const request = require('request');
-const nodemailer = require('nodemailer');
-const config = require('../config');
-const transporter = nodemailer.createTransport(`smtps://${config.nodemailer.transporter.smtps}:${config.nodemailer.transporter.pass}@${config.nodemailer.transporter.provider}`);
 const router = new Router();
-const sqsAm = new aws.SQS({
-  region: config.sqs.region,
-  accessKeyId: config.sqs.accessKeyId,
-  secretAccessKey: config.sqs.secretAccessKey,
-  params: {
-    QueueUrl: config.sqs.params.QueueUrl
-  }
-});
 
-
-function configureMail(mail, body, subject) {
-  const mailOptions = {
-    from  : '"Find earth Notification" <brianelblog@gmail.com>', // sender address
-    to    : mail,
-    subject,
-    text  : body,
-    html  : body
-  };
-  return mailOptions;
-}
-
-function sendMail(mail, body, subject, req, res, next) {
-  transporter.sendMail(configureMail(mail, body, subject), (err, info) => {
-    if (err) { return next(err); }
-    req.logger.verbose('Notification succesfully sent');
-    res.status(204).end();
-  });
-}
 
 function sendNotificationSet(req, res, next) {
-  req.logger.info('Starting to check queue');
-  sqsAm.receiveMessage({
-    WaitTimeSeconds  : 0,
-    VisibilityTimeout: 10
-  }, (err, data) => {
-    if (!data.Messages) {
-      const error = new Error( 'There is no messages');
-      error.type = 'EmptyQueue';
-      return next(error);
+  req.logger.info('Finding notification set', req.query);
+  req.model('NotificationSet').countAndFind({
+    status: {
+      $in: ['pending', 'failed']
+    },
+    scheduledAt: {
+      $gte: req.query.fromDate,
+      $lt:  req.query.toDate
     }
-    if (err) { return next(err); }
-    const bodyParsed = JSON.parse(data.Messages[0].Body);
-    req.logger.info( 'Sending Notification by push or SMS ');
-    req.logger.info( `Changing status to  complete for notification with id: ${bodyParsed.notification_id}  `);
-    req.logger.info( 'Deleting:', data.Messages[0].MessageId );
-    request({ url: `${config.api.url}/organization/5835e74705fe7a0bb575598a/notification-set/${bodyParsed.notification_id}`, method: 'PUT', json: { status: 'success' } }, () => {
-      req.logger.info('Status cambiado a success');
-      // TODO REFACTOR THIS - SEND TO A USER EMAIL
-      sendMail('mail@gmail.com', bodyParsed.message, bodyParsed.title, req, res, next);
-    });
-    return (
-      sqsAm.deleteMessage({ ReceiptHandle: data.Messages[0].ReceiptHandle }, (err, data) => {
-        if (err) { return next(err); }
-        req.logger.info('Message Deleted!');
-      }
-    ));
-  });
-}
+  })
+    .lean()
+    .exec((err, notificationSets, notificationSetCount) => {
+      if (err) { return next(err); }
 
-function queueNotification(req) {
-  const msg = {
-    notification_id: req.body.notification_id,
-    message        : req.body.body,
-    title          : req.body.title,
-    scheduledAt    : req.body.scheduledAt,
-    geo            : req.body.geo,
-    type           : req.body.type
-  };
-  const sqsParams = {
-    MessageBody: JSON.stringify(msg),
-    QueueUrl   : config.sqs.params.QueueUrl
-  };
-  sqsAm.sendMessage(sqsParams, (err, data) => {
-    if (err) { req.logger('ERR', err); }
-  });
-  req.logger.info('La notificacion fue encolada con exito');
+      async.map(notificationSets, (notificationSet, cb) => {
+        req.sendNotification(notificationSet, (err, result) => {
+          if (err) { return cb(err); }
+
+          // @TODO change status from pending to sent
+          cb(null, result);
+        });
+      }, (err, results) => {
+        // @TODO Send to client the succesfully sent notifications
+
+        req.logger.verbose('Sending notification set to client');
+        res.sendQueried(notificationSets, notificationSetCount);
+      });
+    });
 }
 
 function createNotificationSet(req, res, next) {
   req.logger.info(`Creating notification set ${req.body}`);
-  const body = Object.assign(req.body, { organization: req.params.organizationId });
-  req.model('NotificationSet').create(body, (err, notificationSet) => {
+  req.body.organization = req.params.organizationId;
+  req.model('NotificationSet').create(req.body, (err, notificationSet) => {
     if (err) { return next(err); }
-    req.logger.verbose('Enqueue notification');
-    req.body.notification_id = notificationSet._id;
-    req.body.title           = notificationSet.title;
-    req.body.scheduledAt     = notificationSet.scheduledAt;
-    req.body.geo             = notificationSet.geo;
-    req.body.type            = notificationSet.type;
-    queueNotification(req);
+
     req.logger.verbose('Sending notification set to client');
     res.sendCreated(notificationSet);
   });
@@ -102,8 +47,8 @@ function createNotificationSet(req, res, next) {
 
 function queryNotificationSets(req, res, next) {
   req.logger.info(`Querying notification set ${req.query}`);
-  const query = Object.assign(req.query, { organization: req.params.organizationId });
-  req.model('NotificationSet').countAndFind(query)
+  Object.assign(req.query, { organization: req.params.organizationId });
+  req.model('NotificationSet').countAndFind(req.query)
     .skip(req.skip)
     .limit(req.limit)
     .sort(req.sort)
@@ -149,9 +94,10 @@ function findNotificationSetBySlug(req, res, next) {
 }
 
 function updateNotificationSetById(req, res, next) {
-  req.logger.info(`Updating notification set with id ${req.params.id} and organization id ${req.params.organizationId}`);
+  req.logger.info(`Updating notification set with id ${req.params.id}`);
   req.model('NotificationSet').update({
-    _id         : req.params.id
+    _id         : req.params.id,
+    organization: req.params.organization
   }, req.body, (err, results) => {
     if (err) { return next(err); }
 
